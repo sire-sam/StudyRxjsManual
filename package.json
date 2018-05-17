@@ -1,0 +1,9 @@
+{
+  "name": "rxjsDraft",
+  "version": "1.0.0",
+  "description": "Draft for some testing of rxjs from scratch wihout angular wrapper",
+  "main": " ",
+  "author": "SireSam",
+  "license": "UNLICENSED",
+  "private": true
+}
