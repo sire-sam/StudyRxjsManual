@@ -1,23 +1,39 @@
-import { Observable, interval } from 'rxjs';
+import { Observable, Subject, from } from 'rxjs';
+import { multicast } from 'rxjs/operators';
 
-// Subscription
-// http://reactivex.io/rxjs/manual/overview.html#subscription
+// Subject
+// http://reactivex.io/rxjs/manual/overview.html#subject
+const subj = new Subject();
 
-// Subscription has an unsubscribe method, that just disposes the resource (as seen before)
-// But __important__ Subscriptions can also be put together
-const obs1 = interval(400);
-const obs2 = interval(300);
-const sub = obs1.subscribe(() => console.log('x'));
-const childSub = obs2.subscribe(() => console.log('y'));
-const anotherChildSub = obs1.subscribe(() => console.log('z'));
-const yetAnotherSub = obs2.subscribe(() => console.log('O'));
+// Every Subject is an Observable
+//
+subj.subscribe(x => console.log('a', x));
+subj.subscribe({ next: x => console.log('b', x) });
 
-sub.add(childSub);
-childSub.add(anotherChildSub);
-sub.add(yetAnotherSub);
+// Every Subject is an Observer
+//
+subj.next(1);
+subj.next(2);
 
-setTimeout(() => {
-  // example of remove: "yetAnotherSub" it will not be unsubscribe
-  sub.remove(yetAnotherSub); // comment this to unsubscribe "yetAnotherSub"
-  sub.unsubscribe(); // unsubscribe from all 3 subscriptions
-}, 1000);
+// Subject is an Observer so you may provide a Subject as observer of another Observable
+const obs = from([3, 4, 5]);
+
+obs.subscribe(subj);
+
+// Note:
+// Subjects are the only way of making any Observable execution be shared to multiple Observers
+
+// Multicasted Observables intro
+//
+// multicasted Observable uses a Subject to make Observers see the same Observable execution
+// under the hood
+const src = from([1, 2, 3]);
+const subjMulticast = new Subject();
+const multicasted = src.pipe(multicast(subjMulticast));
+
+multicasted.subscribe(x => console.log('multiCasted A', x));
+multicasted.subscribe(y => console.log('multiCasted B', y));
+
+// same result as `obs.subscribe(subj)` in previous example
+multicasted.connect();
+
