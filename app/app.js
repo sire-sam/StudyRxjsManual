@@ -1,21 +1,26 @@
 import { Subject, interval } from 'rxjs';
-import { multicast } from 'rxjs/operators';
+import { multicast, refCount } from 'rxjs/operators';
 
-// Subject - Multicasted Observables
+// Subject - Multicasted Observables - reference counting
 const src = interval(500);
 const subj = new Subject();
-const multicasted = src.pipe(multicast(subj));
+const refCounted = src.pipe(multicast(subj)).pipe(refCount());
 let sub2;
 
-const sub1 = multicasted.subscribe(next => console.log(`sub1: next: ${next}`));
-const subConnect = multicasted.connect();
+console.log('observerA subscribe');
+const sub1 = refCounted.subscribe(next => console.log(`observerA called ${next}`));
 
 setTimeout(() => {
-  sub2 = multicasted.subscribe(next => console.log(`sub2: next: ${next}`));
+  console.log('observerB subscribe');
+  sub2 = refCounted.subscribe(next => console.log(`oberserverB called ${next}`));
 }, 600);
 
-setTimeout(() => sub1.unsubscribe(), 1200);
 setTimeout(() => {
+  console.log('observerA unsubscribe');
+  sub1.unsubscribe();
+}, 1200);
+
+setTimeout(() => {
+  console.log('observerB unsubscribe');
   sub2.unsubscribe();
-  subConnect.unsubscribe();
-}, 2000);
+}, 1800);
