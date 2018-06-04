@@ -1,26 +1,16 @@
-import { Subject, interval } from 'rxjs';
-import { multicast, refCount } from 'rxjs/operators';
+import { BehaviorSubject } from 'rxjs';
 
-// Subject - Multicasted Observables - reference counting
-const src = interval(500);
-const subj = new Subject();
-const refCounted = src.pipe(multicast(subj)).pipe(refCount());
-let sub2;
+// Subject - Behavior subject
+const subject = new BehaviorSubject(0);
 
-console.log('observerA subscribe');
-const sub1 = refCounted.subscribe(next => console.log(`observerA called ${next}`));
+const sub1 = subject.subscribe(next => console.log(`observer1 ${next}`));
 
-setTimeout(() => {
-  console.log('observerB subscribe');
-  sub2 = refCounted.subscribe(next => console.log(`oberserverB called ${next}`));
-}, 600);
+subject.next(1);
+subject.next(2);
 
-setTimeout(() => {
-  console.log('observerA unsubscribe');
-  sub1.unsubscribe();
-}, 1200);
+const sub2 = subject.subscribe(next => console.log(`observer2 ${next}`));
 
-setTimeout(() => {
-  console.log('observerB unsubscribe');
-  sub2.unsubscribe();
-}, 1800);
+subject.next(3);
+
+sub1.unsubscribe();
+sub2.unsubscribe();
